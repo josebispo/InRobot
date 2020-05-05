@@ -1,0 +1,11 @@
+{
+  "name": "InRobot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "description": "linkedin robot",
+  "author": "José Bispo",
+  "dependencies": {
+    "puppeteer": "^3.0.2"
+  }
+}
