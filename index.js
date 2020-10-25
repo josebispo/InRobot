@@ -1,5 +1,5 @@
 // Importando puppeteer
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer');
 
 // Variáveis que usaremos no decorrer do código.
 var url = 'https://www.linkedin.com/';
@@ -8,9 +8,17 @@ var url = 'https://www.linkedin.com/';
 var email = 'josebispo@ucl.br';
 
 // sua senha de login
-var password = 'Jbn@3282#';
+var password = 12345678';
+
+let invites = [];
+
+let total = 0;
 
 let linkedin = async () => {
+
+    let date = new Date();
+    console.log("Inicio");
+    console.log(date);
 
     // Criamos uma função anônimo assíncrona, que vai permitir acessar o potencial da ferramenta.
     const browser = await puppeteer.launch({headless: false});
@@ -19,7 +27,7 @@ let linkedin = async () => {
     const page = await browser.newPage();
 
     // Acessa a url informada na promisse.
-    await page.goto(url)
+    await page.goto(url);
 
     // Carrega as dimensões padrão ou personalizadas, bom pra testar mobile.
     await page.setViewport({
@@ -30,11 +38,6 @@ let linkedin = async () => {
     // Algumas páginas não terminam de carregar antes do screenshot, geralmente leva-se alguns ms
     // Mas por garantia eu aguardo 3 segundos antes de printar a tela.
     await page.waitFor(3000);
-
-    // Screenshot é uma função poderosa, gerando imagens em diversos formatos por exemplo pdf A4, A3, ....
-    await page.screenshot({
-        path: 'home.jpg',
-    });
 
     // invoca o evento click no elemento passando para a função a classe.
     await page.click('.nav__button-secondary');
@@ -64,55 +67,94 @@ let linkedin = async () => {
 
     console.log('Lista de contatos carregados com sucesso  ....');
 
-    // Usamos o page.evaluate para rodar nosso JS no navegador como se fosse na unha mesmo no Browser.
-    let network = await page.evaluate(() => {
+    let pages_contact = 0;
 
-        // iremos listar todos os contatos disponiveis nesse array;
-        var contacts = [];
+    while (pages_contact < 10) {
 
-        // Pegamos os elementos que possuem os dados dos contatos.
-        var container = document.querySelectorAll(".discover-entity-type-card.artdeco-card.ember-view");
+        await page.waitFor(10000);
 
-        // Varemos os elementos usando o ForEach pegando os dados de um por um.
-        container.forEach(function (userItem) {
+        /*   Get elements by class and check the company if have some company restriction, like old shit company */
+        let network = await page.evaluate(() => {
 
-            // Nome do contato.
-            let name = userItem.getElementsByClassName("discover-person-card__name")[0];
+            let sum = 0;
+            // iremos listar todos os contatos disponiveis nesse array;
+            let contacts = [];
 
-            // Sua profissão ou carreira.
-            let occupation = userItem.getElementsByClassName("discover-person-card__occupation")[0];
+            var container = document.querySelectorAll(".discover-entity-type-card.artdeco-card.ember-view");
 
-            // Número de amigos em comum
-            let friends = userItem.getElementsByClassName("member-insights__reason text-align-center t-12")[0];
+            container.forEach(function (userItem) {
 
+                let name = userItem.getElementsByClassName("discover-person-card__name")[0];
+                let occupation = userItem.getElementsByClassName("discover-person-card__occupation")[0];
+                let friends = userItem.getElementsByClassName("member-insights__reason text-align-center t-12")[0];
 
-            // Verificamos se  possuem occupation pois a mesma página também exibe empresas e isso acaba gerando um erro de elemento indefinido.
-            if ((typeof occupation) !== "undefined" && (typeof friends) !== "undefined") {
+                if ((typeof occupation) !== "undefined" && (typeof friends) !== "undefined") {
 
-                occupation = occupation.innerText;
-                friends = friends.innerText;
-                name = name.innerText;
+                    name = name.innerText;
+                    occupation = occupation.innerText;
+                    friends = friends.innerText;
 
-                // Tratando o texto removendo letras e parseando pra inteiro.
-                friends = parseInt(friends.match(/(\d+)/)[0]);
+                    // Tratando o texto removendo letras e parseando pra inteiro.
+                    friends = parseInt(friends.match(/(\d+)/)[0]);
 
-                contacts.push({"Nome": name, "cargo": occupation, "amigos": friends});
+                    if ((typeof occupation) !== "undefined") {
 
-            }
+                        if ((friends >= 100) && sum <= 10) {
+
+                            var connect = userItem.getElementsByClassName("full-width artdeco-button artdeco-button--2 artdeco-button--full artdeco-button--secondary ember-view")[0];
+                            connect.click();
+                            sum++;
+                            contacts.push({"nome": name, "cargo": occupation, "amigos": friends});
+                            console.log(contacts);
+
+                            setTimeout(() => {
+                                console.log("Pera maluco!");
+                            }, 3000);
+                        }
+                        setTimeout(() => {
+                            console.log("Pera maluco!");
+                        }, 1000);
+                    }
+                }
+            });
+
+            return {
+                'invites': contacts,
+                'total': sum
+            };
         });
 
-        // Retornamos a lista com todos os possiveis contatos, cargos e amigos em comum.
-        return contacts;
-    });
+        total += network.total;
+        invites.push({
+            "Invited": network.invites[0],
+        });
+
+        pages_contact++;
+        await page.reload();
+        await page.waitFor(10000);
+    }
 
     // Fechamos a instancia que foi aberta inicialmente no  .launch.
     await browser.close();
 
+    invites.push({"Total": total});
+
+
     // Retorno de sucesso no final da execução.
-    return network;
+    return invites;
 };
 
 
 linkedin().then((result) => {
     console.log(result);
+    console.log("FIM");
+    let d = new Date();
+    console.log(d);
 });
+
+
+if (true) {
+    return [];
+} else {
+    return [];
+}
