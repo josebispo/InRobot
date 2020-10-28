@@ -5,10 +5,10 @@ const puppeteer = require('puppeteer')
 var url = 'https://www.linkedin.com/';
 
 // email de login no linkedin
-var email = 'josebispo@ucl.br';
+var email = 'seuemail@com.br';
 
 // sua senha de login
-var password = 'Jbn@3282#';
+var password = '123456789';
 
 let linkedin = async () => {
 
